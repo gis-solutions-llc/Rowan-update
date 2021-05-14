@@ -1,0 +1,600 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Show bldg sqft on hover</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+
+  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.1/mapbox-gl.css' rel='stylesheet' />
+  <link href=’https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.2/mapbox-gl.css' rel=’stylesheet’ />
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.1/mapbox-gl.js'></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    h2,
+    h3 {
+      margin: 10px;
+      font-size: 1.2em;
+    }
+
+    h3 {
+      font-size: 1em;
+    }
+
+    p {
+      font-size: 0.85em;
+      margin: 10px;
+      text-align: left;
+    }
+
+    .map-overlay {
+      position: absolute;
+      bottom: 0;
+      right: 100;
+      background: rgba(255, 255, 255, 0.8);
+      margin-right: 20px;
+      font-family: Arial, sans-serif;
+      overflow: auto;
+      border-radius: 3px;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+
+    #features {
+      top: 0;
+      height: auto;
+      margin-top: 0px;
+      width: auto;
+    }
+
+    #demo {
+      /* To play around, change this to absolute */
+      position: fixed;
+      bottom: 0px;
+      right: 0px;
+      z-index: 1;
+      padding: 0px;
+      margin: 0px;
+    }
+
+    .legend {
+      background-color: #fff;
+      border-radius: 3px;
+      bottom: 50px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+      padding: 10px;
+      position: absolute;
+      right: 10px;
+      z-index: 1;
+    }
+
+    .legend h4 {
+      margin: 0 0 10px;
+    }
+
+    .legend p {
+      margin-left: 30px;
+      position: absolute;
+      display: block;
+      top: 0;
+    }
+
+    .legend div {
+      position: relative;
+    }
+
+    .legend div span {
+      border-radius: 25%;
+      display: inline-block;
+      margin-right: 5px;
+      opacity: .8;
+      background-color: #fff;
+    }
+
+    #legend {
+      padding: 10px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10);
+      line-height: 18px;
+      height: 170px;
+      margin-bottom: 40px;
+      width: 160px;
+    }
+
+    .legend-key {
+      display: inline-block;
+      border-radius: 20%;
+      width: 10px;
+      height: 10px;
+      margin-right: 5px;
+    }
+
+    #menu {
+      background: #fff;
+      position: absolute;
+      z-index: 1;
+      top: 60px;
+      right: 10px;
+      border-radius: 3px;
+      width: 120px;
+      border: 1px solid rgba(0, 0, 0, 0.4);
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    #menu a {
+      font-size: 13px;
+      color: #404040;
+      display: block;
+      margin: 0;
+      padding: 0;
+      padding: 10px;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+      text-align: center;
+    }
+
+    #menu a:last-child {
+      border: none;
+    }
+
+    #menu a:hover {
+      background-color: #f8f8f8;
+      color: #404040;
+    }
+
+    #menu a.active {
+      background-color: #3887be;
+      color: #ffffff;
+    }
+
+    #menu a.active:hover {
+      background: #3074a4;
+    }
+  </style>
+</head>
+
+<body>
+  <nav id="menu"></nav>
+  <script
+    src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.min.js'></script>
+  <link rel='stylesheet'
+    href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.css'
+    type='text/css' />
+
+  <div id="map" class="mapboxgl-map">
+    <div class="mapboxgl-missing-css">Missing Mapbox GL JS CSS</div>
+    <div class="mapboxgl-canvas-container mapboxgl-interactive mapboxgl-touch-drag-pan mapboxgl-touch-zoom-rotate">
+      <canvas class="mapboxgl-canvas" tabindex="0" aria-label="Map" width="150" height="831"
+        style="position: absolute; width: 150px; height: 831px; cursor: default;">
+      </canvas>
+    </div>
+    <div class="mapboxgl-control-container">
+      <div class="mapboxgl-ctrl-top-left"></div>
+      <div class="mapboxgl-ctrl-top-right"></div>
+      <div class="mapboxgl-ctrl-bottom-left">
+        <div class="mapboxgl-ctrl" style="display: block;"><a class="mapboxgl-ctrl-logo" target="_blank"
+            href="https://www.mapbox.com/" aria-label="Mapbox logo"></a></div>
+      </div>
+      <div class="mapboxgl-ctrl-bottom-right">
+        <div class="mapboxgl-ctrl mapboxgl-ctrl-attrib mapboxgl-compact">
+          <a href="https://www.mapbox.com/about/maps/" target="_blank">© Mapbox</a>
+          <a href="http://www.openstreetmap.org/about/" target="_blank">© OpenStreetMap</a> <a
+            class="mapbox-improve-map"
+            href="https://www.mapbox.com/feedback/?owner=examples&amp;id=cj2civacd00302rogivh6xbx2&amp;access_token=pk.eyJ1IjoiZXhhbXBsZXMiLCJhIjoiY2lqbmpqazdlMDBsdnRva284cWd3bm11byJ9.V6Hg2oYJwMAxeoR9GEzkAA"
+            target="_blank">Improve this map</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="map-overlay" id="features">
+    <h3>Rowan County Vacant Land </h3>
+    <div id="pd">
+      <p>Hover over a parcel</p>
+    </div>
+  </div>
+  <div id='legend' class='legend'>
+    <h4>Vacant Parcel</h4>
+  </div>
+
+  <script>
+    // define access token
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZ2lzc29sdXRpb25zbGxjbWFwcyIsImEiOiJjamw4Y2RiMDAweGx4M2txb3NxZnBxeDFoIn0.MfwIqWM5qlGDkyDOpXmQFQ';
+    //create map
+    var map = new mapboxgl.Map({
+      container: 'map', // container id
+      style: 'mapbox://styles/gissolutionsllcmaps/ckonocks3061417lbqtms1upa' // map style URL from Mapbox Studio
+    });
+
+
+    // wait for map to load before adjusting it
+    map.on('load', function () {
+      // make a pointer cursor
+      map.getCanvas().style.cursor = 'default';
+      // set map bounds to the continental US
+
+      // make a pointer cursor
+      map.getCanvas().style.cursor = 'default';
+      // define layer names
+      var layers = ['RES <= 2 acres', 'RES >= 2 acres', '0% - 25%', '25% - 50%', '50% - 75%', '>75%','NONRES', 'Flood'];
+      var colors = ['#abf39b', '#3ca527', '#a86060', '#f0a747' , '#743f97' , '#9474b4' , '#ffff00' , '#00acf0'];
+      // create legend
+      for (i = 0; i < layers.length; i++) {
+        var layer = layers[i];
+        var color = colors[i];
+        var item = document.createElement('div');
+        var key = document.createElement('span');
+        key.className = 'legend-key';
+        key.style.backgroundColor = color;
+        var value = document.createElement('span');
+        value.innerHTML = layer;
+        item.appendChild(key);
+        item.appendChild(value);
+        legend.appendChild(item);
+      }
+
+      let activeItem;
+      // change info window on hover
+      map.on('mousemove', function (e) {
+        const buildings = map.queryRenderedFeatures(e.point, {
+          layers: ['RES less 2 acres', 'RES more 2 acres', 'Ratio1','Ratio2','Ratio3','Ratio4','NONRES']
+        });
+        if (activeItem) {
+          document.getElementById('pd').innerHTML =
+            "<p><em><b>Owner:</b> " + activeItem.properties.OWNNAME +
+            "<p><em><b>Address:</b> " + activeItem.properties.PROP_ADDRE +
+            "<p><em><b>Parcel ID:</b> " + activeItem.properties.PARCEL_ID +
+            "<p><em><b>Land Use:</b> " + activeItem.properties.ZONING_12 +
+            "<p><em><b>Land Value: $</b> " + activeItem.properties.LANDFMV +
+            "<p><em><b>SqFt: </b> " + activeItem.properties.SqFt1 +
+            "<p><em><b>Acres: </b> " + activeItem.properties.Acres1 +
+			"<p><em><b>Ratio: </b> " + activeItem.properties.Ratio +
+            "</em></p>";
+        } else {
+          if (buildings.length > 0) {
+            document.getElementById('pd').innerHTML =
+              "<p><em><b>Owner:</b> " + buildings[0].properties.OWNNAME +
+              "<p><em><b>Address:</b> " + buildings[0].properties.PROP_ADDRE +
+              "<p><em><b>Parcel ID:</b> " + buildings[0].properties.PARCEL_ID +
+              "<p><em><b>Land Use:</b> " + buildings[0].properties.ZONING_12 +
+              "<p><em><b>Land Value: $</b> " + buildings[0].properties.LANDFMV +
+              "<p><em><b>SqFt: </b> " + buildings[0].properties.SqFt1 +
+              "<p><em><b>Acres: </b> " + buildings[0].properties.Acres1 +
+              "<p><em><b>Ratio: </b> " + buildings[0].properties.Ratio +
+			  "</em></p>";
+          } else {
+            document.getElementById('pd').innerHTML = '<p>Hover over Parcel</p>';
+          }
+        }
+      });
+
+      map.on('click', function (e) {
+        const buildings = map.queryRenderedFeatures(e.point, {
+          layers: ['RES less 2 acres', 'RES more 2 acres', 'Ratio1', 'Ratio2', 'Ratio3', 'Ratio4','NONRES']
+        });
+        if (activeItem) {
+          if (buildings.length > 0) {
+            activeItem = buildings[0];
+          } else {
+            activeItem = null;
+          }
+        } else {
+          if (buildings.length > 0) {
+            activeItem = buildings[0];
+          } else {
+            document.getElementById('pd').innerHTML = '<p>Click over Parcel</p>';
+          }
+        }
+      });
+    });
+
+
+    var toggleableLayerIds = ['RES less 2 acres'];
+    for (var i = 0; i < toggleableLayerIds.length; i++) {
+      var id = toggleableLayerIds[i];
+      var link = document.createElement('a');
+      link.href = '#';
+      link.className = 'active';
+      link.textContent = id;
+      link.onclick = function (e) {
+        var clickedLayer = this.textContent;
+        e.preventDefault();
+        e.stopPropagation();
+
+        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+        if (visibility === 'visible') {
+          map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+          this.className = '';
+        } else {
+          this.className = 'active';
+          map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+        }
+      };
+      var layers = document.getElementById('menu');
+      layers.appendChild(link);
+    }
+
+
+    var toggleableLayerIds = ['RES more 2 acres'];
+    for (var i = 0; i < toggleableLayerIds.length; i++) { 
+      var id = toggleableLayerIds[i];
+      var link = document.createElement('a');
+      link.href = '#';
+      link.className = 'active';
+      link.textContent = id;
+
+      link.onclick = function (e) {
+        var clickedLayer = this.textContent;
+        e.preventDefault();
+        e.stopPropagation();
+
+        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+        if (visibility === 'visible') {
+          map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+          this.className = '';
+        } else {
+          this.className = 'active';
+          map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+        }
+      };
+
+      var layers = document.getElementById('menu');
+      layers.appendChild(link);
+    }
+
+    var toggleableLayerIds = ['Ratio1'];
+    for (var i = 0; i < toggleableLayerIds.length; i++) {
+      var id = toggleableLayerIds[i];
+      var link = document.createElement('a');
+      link.href = '#';
+      link.className = 'active';
+      link.textContent = id;
+      link.onclick = function (e) {
+        var clickedLayer = this.textContent;
+        e.preventDefault();
+        e.stopPropagation();
+
+        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+        if (visibility === 'visible') {
+          map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+          this.className = '';
+        } else {
+          this.className = 'active';
+          map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+        }
+      };
+      var layers = document.getElementById('menu');
+      layers.appendChild(link);
+    }
+
+    var toggleableLayerIds = ['Ratio2'];
+    for (var i = 0; i < toggleableLayerIds.length; i++) {
+      var id = toggleableLayerIds[i];
+      var link = document.createElement('a');
+      link.href = '#';
+      link.className = 'active';
+      link.textContent = id;
+      link.onclick = function (e) {
+        var clickedLayer = this.textContent;
+        e.preventDefault();
+        e.stopPropagation();
+
+        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+        if (visibility === 'visible') {
+          map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+          this.className = '';
+        } else {
+          this.className = 'active';
+          map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+        }
+      };
+      var layers = document.getElementById('menu');
+      layers.appendChild(link);
+    }
+
+
+    var toggleableLayerIds = ['Ratio3'];
+    for (var i = 0; i < toggleableLayerIds.length; i++) {
+      var id = toggleableLayerIds[i];
+      var link = document.createElement('a');
+      link.href = '#';
+      link.className = 'active';
+      link.textContent = id;
+      link.onclick = function (e) {
+        var clickedLayer = this.textContent;
+        e.preventDefault();
+        e.stopPropagation();
+
+        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+        if (visibility === 'visible') {
+          map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+          this.className = '';
+        } else {
+          this.className = 'active';
+          map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+        }
+      };
+      var layers = document.getElementById('menu');
+      layers.appendChild(link);
+    }
+	
+	var toggleableLayerIds = ['Ratio4'];
+    for (var i = 0; i < toggleableLayerIds.length; i++) {
+      var id = toggleableLayerIds[i];
+      var link = document.createElement('a');
+      link.href = '#';
+      link.className = 'active';
+      link.textContent = id;
+      link.onclick = function (e) {
+        var clickedLayer = this.textContent;
+        e.preventDefault();
+        e.stopPropagation();
+
+        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+        if (visibility === 'visible') {
+          map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+          this.className = '';
+        } else {
+          this.className = 'active';
+          map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+        }
+      };
+      var layers = document.getElementById('menu');
+      layers.appendChild(link);
+    }
+	
+	
+	
+    var toggleableLayerIds = ['NONRES'];
+    for (var i = 0; i < toggleableLayerIds.length; i++) {
+      var id = toggleableLayerIds[i];
+
+      var link = document.createElement('a');
+      link.href = '#';
+      link.className = 'active';
+      link.textContent = id;
+
+      link.onclick = function (e) {
+        var clickedLayer = this.textContent;
+        e.preventDefault();
+        e.stopPropagation();
+
+        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+        if (visibility === 'visible') {
+          map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+          this.className = '';
+        } else {
+          this.className = 'active';
+          map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+        }
+      };
+
+      var layers = document.getElementById('menu');
+      layers.appendChild(link);
+    }
+
+
+
+    var toggleableLayerIds = ['CTYBDRY'];
+    for (var i = 0; i < toggleableLayerIds.length; i++) {
+      var id = toggleableLayerIds[i];
+
+      var link = document.createElement('a');
+      link.href = '#';
+      link.className = 'active';
+      link.textContent = id;
+
+      link.onclick = function (e) {
+        var clickedLayer = this.textContent;
+        e.preventDefault();
+        e.stopPropagation();
+
+        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+        if (visibility === 'visible') {
+          map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+          this.className = '';
+        } else {
+          this.className = 'active';
+          map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+        }
+      };
+
+      var layers = document.getElementById('menu');
+      layers.appendChild(link);
+    }
+
+    /*
+	  < !-- var toggleableLayerIds = ['CITIES']; -->
+
+      < !-- for (var i = 0; i < toggleableLayerIds.length; i++) {
+      -->
+        < !-- var id = toggleableLayerIds[i]; -->
+
+        < !-- var link = document.createElement('a'); -->
+        < !--link.href = '#'; -->
+        < !--link.className = 'active'; -->
+        < !--link.textContent = id; -->
+
+        < !--link.onclick = function(e) {
+        -->
+          < !-- var clickedLayer = this.textContent; -->
+          < !--e.preventDefault(); -->
+          < !--e.stopPropagation(); -->
+
+          < !-- var visibility = map.getLayoutProperty(clickedLayer, 'visibility'); -->
+
+          < !-- if (visibility === 'visible') {
+          -->
+            < !--map.setLayoutProperty(clickedLayer, 'visibility', 'none'); -->
+            < !--this.className = ''; -->
+          < !-- } else {
+          -->
+            < !--this.className = 'active'; -->
+            < !--map.setLayoutProperty(clickedLayer, 'visibility', 'visible'); -->
+          < !-- } -->
+        < !-- }; -->
+
+        < !-- var layers = document.getElementById('menu'); -->
+        < !--layers.appendChild(link); -->
+      < !-- } -->
+      */
+
+    var toggleableLayerIds = ['Flood'];
+    for (var i = 0; i < toggleableLayerIds.length; i++) {
+      var id = toggleableLayerIds[i];
+
+      var link = document.createElement('a');
+      link.href = '#';
+      link.className = 'active';
+      link.textContent = id;
+
+      link.onclick = function (e) {
+        var clickedLayer = this.textContent;
+        e.preventDefault();
+        e.stopPropagation();
+
+        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+        if (visibility === 'visible') {
+          map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+          this.className = '';
+        } else {
+          this.className = 'active';
+          map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+        }
+      };
+
+      var layers = document.getElementById('menu');
+      layers.appendChild(link);
+    }
+
+  </script>
+  <script>
+    map.addControl(new MapboxGeocoder({
+      accessToken: mapboxgl.accessToken
+    }));
+
+  </script>
+
+</body>
+
+</html>
