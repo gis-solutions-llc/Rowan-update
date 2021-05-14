@@ -227,8 +227,8 @@
       // make a pointer cursor
       map.getCanvas().style.cursor = 'default';
       // define layer names
-      var layers = ['RES <= 2 acres', 'RES >= 2 acres', '0% - 25%', '25% - 50%', '50% - 75%', '>75%','NONRES', 'Flood'];
-      var colors = ['#abf39b', '#3ca527', '#a86060', '#f0a747' , '#743f97' , '#9474b4' , '#ffff00' , '#00acf0'];
+      var layers = ['RES <= 2 acres', 'RES >= 2 acres', '<25%', '25% - 50%', '50% - 75%', '>75%','NONRES', 'Flood'];
+      var colors = ['#aaf3aa', '#3ca527', '#f0a747', '#9474b4' , '#743f97' , '#27043f' , '#ffff00' , '#00acf0'];
       // create legend
       for (i = 0; i < layers.length; i++) {
         var layer = layers[i];
@@ -248,7 +248,7 @@
       // change info window on hover
       map.on('mousemove', function (e) {
         const buildings = map.queryRenderedFeatures(e.point, {
-          layers: ['RES less 2 acres', 'RES more 2 acres', 'Ratio1','Ratio2','Ratio3','Ratio4','NONRES']
+          layers: ['RES less 2 acres', 'RES more 2 acres', 'Ratio less 25 pct','Ratio 25-50 pct','Ratio 50-75 pct','Ratio greater 75 pct','NONRES']
         });
         if (activeItem) {
           document.getElementById('pd').innerHTML =
@@ -281,7 +281,7 @@
 
       map.on('click', function (e) {
         const buildings = map.queryRenderedFeatures(e.point, {
-          layers: ['RES less 2 acres', 'RES more 2 acres', 'Ratio1', 'Ratio2', 'Ratio3', 'Ratio4','NONRES']
+          layers: ['RES less 2 acres', 'RES more 2 acres', 'Ratio less 25 pct', 'Ratio 25-50 pct', 'Ratio 50-75 pct', 'Ratio greater 75 pct','NONRES']
         });
         if (activeItem) {
           if (buildings.length > 0) {
@@ -355,7 +355,7 @@
       layers.appendChild(link);
     }
 
-    var toggleableLayerIds = ['Ratio1'];
+    var toggleableLayerIds = ['Ratio less 25 pct'];
     for (var i = 0; i < toggleableLayerIds.length; i++) {
       var id = toggleableLayerIds[i];
       var link = document.createElement('a');
@@ -381,7 +381,7 @@
       layers.appendChild(link);
     }
 
-    var toggleableLayerIds = ['Ratio2'];
+    var toggleableLayerIds = ['Ratio 25-50 pct'];
     for (var i = 0; i < toggleableLayerIds.length; i++) {
       var id = toggleableLayerIds[i];
       var link = document.createElement('a');
@@ -408,7 +408,7 @@
     }
 
 
-    var toggleableLayerIds = ['Ratio3'];
+    var toggleableLayerIds = ['Ratio 50-75 pct'];
     for (var i = 0; i < toggleableLayerIds.length; i++) {
       var id = toggleableLayerIds[i];
       var link = document.createElement('a');
@@ -434,7 +434,7 @@
       layers.appendChild(link);
     }
 	
-	var toggleableLayerIds = ['Ratio4'];
+	var toggleableLayerIds = ['Ratio greater 75 pct'];
     for (var i = 0; i < toggleableLayerIds.length; i++) {
       var id = toggleableLayerIds[i];
       var link = document.createElement('a');
